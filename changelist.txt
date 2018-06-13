@@ -1,0 +1,13 @@
+Storm-client
+-----------------
+ - config.java : 
+ - daemon/worker/worker.java
+ - daemon/worker/workerState.java
+
+Storm-server
+----------------
+ - container/cgroup/cgroupmanager.java : add cpu period, quota support
+ - scheduler/CGroupSchedler.java : add this file
+ - daemonconfig.java : config variables
+ -
+

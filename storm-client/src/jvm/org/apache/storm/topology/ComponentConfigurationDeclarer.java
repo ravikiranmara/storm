@@ -80,4 +80,9 @@ public interface ComponentConfigurationDeclarer<T extends ComponentConfiguration
      * Add generic resource for this component.
      */
     T addResource(String resourceName, Number resourceValue);
+
+    /**
+     * set the number of workers to be assigned to this component.
+     */
+    T reserveWorkers(Number numWorkers);
 }

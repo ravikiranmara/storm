@@ -15,8 +15,11 @@ package org.apache.storm.topology;
 import java.util.HashMap;
 import java.util.Map;
 import org.apache.storm.Config;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public abstract class BaseConfigurationDeclarer<T extends ComponentConfigurationDeclarer> implements ComponentConfigurationDeclarer<T> {
+    private static final Logger LOG = LoggerFactory.getLogger(BaseConfigurationDeclarer.class);
     @Override
     public T addConfiguration(String config, Object value) {
         Map<String, Object> configMap = new HashMap<>();
@@ -111,6 +114,18 @@ public abstract class BaseConfigurationDeclarer<T extends ComponentConfiguration
             currentResources.putAll(resources);
         }
         return (T) this;
+    }
+
+    /**
+     * set the number of workers to be assigned to this component.
+     */
+    @Override
+    public T reserveWorkers(Number val) {
+        LOG.info("reserve Workers {}", val);
+        if (val != null) {
+            val = val.intValue();
+        }
+        return addConfiguration(Config.TOPOLOGY_COMPONENT_WORKERS, val);
     }
 
 

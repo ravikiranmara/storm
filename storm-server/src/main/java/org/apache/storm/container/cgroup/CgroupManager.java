@@ -154,6 +154,22 @@ public class CgroupManager implements ResourceIsolationInterface {
             cpuNum = ((Number) conf.get(DaemonConfig.STORM_WORKER_CGROUP_CPU_LIMIT)).intValue();
         }
 
+        // The manually set STORM_WORKER_CGROUP_CPU_LIMIT config on supervisor will overwrite resources assigned by
+        // RAS (Resource Aware Scheduler)
+        Integer cpuPeriod = null;
+        if (conf.get(DaemonConfig.STORM_WORKER_CGROUP_CPU_CFS_PERIOD_US) != null) {
+            cpuPeriod = ((Number) conf.get(DaemonConfig.STORM_WORKER_CGROUP_CPU_CFS_PERIOD_US)).intValue();
+            LOG.info("period value : {}", cpuPeriod);
+        }
+
+        // The manually set STORM_WORKER_CGROUP_CPU_LIMIT config on supervisor will overwrite resources assigned by
+        // RAS (Resource Aware Scheduler)
+        Integer cpuQuota = null;
+        if (conf.get(DaemonConfig.STORM_WORKER_CGROUP_CPU_CFS_QUOTA_US) != null) {
+            cpuQuota = ((Number) conf.get(DaemonConfig.STORM_WORKER_CGROUP_CPU_CFS_QUOTA_US)).intValue();
+            LOG.info("Quota value : {}", cpuQuota);
+        }
+
         // The manually set STORM_WORKER_CGROUP_MEMORY_MB_LIMIT config on supervisor will overwrite
         // resources assigned by RAS (Resource Aware Scheduler)
         if (this.conf.get(DaemonConfig.STORM_WORKER_CGROUP_MEMORY_MB_LIMIT) != null) {
@@ -162,6 +178,24 @@ public class CgroupManager implements ResourceIsolationInterface {
         }
 
         CgroupCommon workerGroup = new CgroupCommon(workerId, this.hierarchy, this.rootCgroup);
+        if (cpuPeriod != null) {
+            CpuCore cpuCore = (CpuCore) workerGroup.getCores().get(SubSystemType.cpu);
+            try {
+                    cpuCore.setCpuCfsPeriodUs(cpuPeriod.intValue());
+                } catch (IOException e) {
+                    throw new RuntimeException("Cannot set cpu.period! Exception: ", e);
+                }
+        }
+
+        if (cpuQuota != null) {
+            CpuCore cpuCore = (CpuCore) workerGroup.getCores().get(SubSystemType.cpu);
+            try {
+                    cpuCore.setCpuCfsQuotaUs(cpuQuota.intValue());
+                } catch (IOException e) {
+                    throw new RuntimeException("Cannot set cpu.quota! Exception: ", e);
+                }
+        }
+
         try {
             this.center.createCgroup(workerGroup);
         } catch (Exception e) {

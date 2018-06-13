@@ -391,6 +391,9 @@ worker.metrics:
     "CGroupCpu": "org.apache.storm.metric.cgroup.CGroupCpu"
     "CGroupCpuGuarantee": "org.apache.storm.metric.cgroup.CGroupCpuGuarantee"
 
+# default worker numbers
+topology.component.workers: -1
+
 # The number of buckets for running statistics
 num.stat.buckets: 20
 

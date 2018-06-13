@@ -1013,6 +1013,29 @@ public class DaemonConfig implements Validated {
     @isPositiveNumber
     public static String STORM_WORKER_CGROUP_CPU_LIMIT = "storm.worker.cgroup.cpu.limit";
     /**
+     * the manually set cpu cfs_period_us for each CGroup on supervisor node.
+     */
+    @isPositiveNumber
+    public static String STORM_WORKER_CGROUP_CPU_CFS_PERIOD_US  = "storm.worker.cgroup.cpu.cfs_period_us";
+
+    /**
+     * the manually set cpu cfs_quota_us for each CGroup on supervisor node.
+     */
+    @isPositiveNumber
+    public static String STORM_WORKER_CGROUP_CPU_CFS_QUOTA_US  = "storm.worker.cgroup.cpu.cfs_quota_us";
+
+    /**
+     * the manually set cpu rt_period_us for each CGroup on supervisor node.
+     */
+    @isPositiveNumber
+    public static String STORM_WORKER_CGROUP_CPU_RT_PERIOD_US  = "storm.worker.cgroup.cpu.rt_period_us";
+
+    /**
+     * the manually set cpu rt_quota_us for each CGroup on supervisor node.
+     */
+    @isPositiveNumber
+    public static String STORM_WORKER_CGROUP_CPU_RT_QUOTA_US  = "storm.worker.cgroup.cpu.rt_quota_us";
+    /**
      * full path to cgexec command.
      */
     @isString

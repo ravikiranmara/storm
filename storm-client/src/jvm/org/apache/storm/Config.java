@@ -196,6 +196,11 @@ public class Config extends HashMap<String, Object> {
     @isPositiveNumber(includeZero = true)
     public static final String TOPOLOGY_TASKS = "topology.tasks";
     /**
+     *  A map of worker used by each component e.g {"Worker" : 10 }
+     */
+    @isInteger
+    public static final String TOPOLOGY_COMPONENT_WORKERS = "topology.component.workers";
+    /**
      * A map of resources used by each component e.g {"cpu.pcore.percent" : 200.0. "onheap.memory.mb": 256.0, "gpu.count" : 2 }
      */
     @isMapEntryType(keyType = String.class, valueType = Number.class)
