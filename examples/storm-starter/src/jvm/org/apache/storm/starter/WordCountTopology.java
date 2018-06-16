@@ -39,10 +39,9 @@ public class WordCountTopology extends ConfigurableTopology {
 
         TopologyBuilder builder = new TopologyBuilder();
 
-        builder.setSpout("spout", new RandomSentenceSpout(), 5);
-
-        builder.setBolt("split", new SplitSentence(), 8).shuffleGrouping("spout");
-        builder.setBolt("count", new WordCount(), 12).fieldsGrouping("split", new Fields("word"));
+        builder.setSpout("spout", new RandomSentenceSpout(), 5).setNumTasks(10).reserveWorkers(1);
+        builder.setBolt("split", new SplitSentence(), 8).setNumTasks(10).shuffleGrouping("spout").reserveWorkers(1);
+        builder.setBolt("count", new WordCount(), 6).setNumTasks(18).fieldsGrouping("split", new Fields("word")).reserveWorkers(1);
 
         conf.setDebug(true);
 

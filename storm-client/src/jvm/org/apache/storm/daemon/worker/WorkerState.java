@@ -170,7 +170,9 @@ public class WorkerState {
         this.localTaskIds = new ArrayList<>();
         this.blobToLastKnownVersion = new ConcurrentHashMap<>();
         for (Map.Entry<List<Long>, JCQueue> entry : executorReceiveQueueMap.entrySet()) {
-            this.shortExecutorReceiveQueueMap.put(entry.getKey().get(0).intValue(), entry.getValue());
+            for (int entryno=entry.getKey().get(0).intValue(); entryno <= entry.getKey().get(1).intValue(); entryno++) {
+                this.shortExecutorReceiveQueueMap.put(entryno, entry.getValue());
+            }
             this.localTaskIds.addAll(StormCommon.executorIdToTasks(entry.getKey()));
         }
         Collections.sort(localTaskIds);
