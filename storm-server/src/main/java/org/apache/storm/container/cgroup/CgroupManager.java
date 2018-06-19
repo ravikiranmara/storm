@@ -178,6 +178,12 @@ public class CgroupManager implements ResourceIsolationInterface {
         }
 
         CgroupCommon workerGroup = new CgroupCommon(workerId, this.hierarchy, this.rootCgroup);
+        try {
+            this.center.createCgroup(workerGroup);
+        } catch (Exception e) {
+            throw new RuntimeException("Error when creating Cgroup! Exception: ", e);
+        }
+
         if (cpuPeriod != null) {
             CpuCore cpuCore = (CpuCore) workerGroup.getCores().get(SubSystemType.cpu);
             try {
@@ -194,12 +200,6 @@ public class CgroupManager implements ResourceIsolationInterface {
                 } catch (IOException e) {
                     throw new RuntimeException("Cannot set cpu.quota! Exception: ", e);
                 }
-        }
-
-        try {
-            this.center.createCgroup(workerGroup);
-        } catch (Exception e) {
-            throw new RuntimeException("Error when creating Cgroup! Exception: ", e);
         }
 
         if (cpuNum != null) {
