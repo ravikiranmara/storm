@@ -528,6 +528,7 @@ public class WorkerState {
 
     // Receives msgs from remote workers and feeds them to local executors. If any receiving local executor is under Back Pressure,
     // informs other workers about back pressure situation. Runs in the NettyWorker thread.
+    // other workers on same machine? 
     private void transferLocalBatch(ArrayList<AddressedTuple> tupleBatch) {
         int lastOverflowCount = 0; // overflowQ size at the time the last BPStatus was sent
 
@@ -536,19 +537,21 @@ public class WorkerState {
             JCQueue queue = shortExecutorReceiveQueueMap.get(tuple.dest);
 
             // 1- try adding to main queue if its overflow is not empty
-            if (queue.isEmptyOverflow()) {
+            // if (queue.isEmptyOverflow()) {
+            LOG.info("rkp: insert queue size : {}", queue.size());
+            if (queue.size() < 1000) {
                 if (queue.tryPublish(tuple)) {
                     continue;
                 }
             }
 
             // 2- BP detected (i.e MainQ is full). So try adding to overflow
+            /*
             int currOverflowCount = queue.getOverflowCount();
             if (bpTracker.recordBackPressure(tuple.dest, queue)) {
                 receiver.sendBackPressureStatus(bpTracker.getCurrStatus());
                 lastOverflowCount = currOverflowCount;
             } else {
-
                 if (currOverflowCount - lastOverflowCount > 10000) {
                     // resend BP status, in case prev notification was missed or reordered
                     BackPressureStatus bpStatus = bpTracker.getCurrStatus();
@@ -560,13 +563,15 @@ public class WorkerState {
             if (!queue.tryPublishToOverflow(tuple)) {
                 dropMessage(tuple, queue);
             }
+            */
+            dropMessage(tuple, queue);
         }
     }
 
     private void dropMessage(AddressedTuple tuple, JCQueue queue) {
         ++dropCount;
         queue.recordMsgDrop();
-        LOG.warn(
+        LOG.info(
             "Dropping message as overflow threshold has reached for Q = {}. OverflowCount = {}. Total Drop Count= {}, Dropped Message : {}",
             queue.getName(), queue.getOverflowCount(), dropCount, tuple);
     }

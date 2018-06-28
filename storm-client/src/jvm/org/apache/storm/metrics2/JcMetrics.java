@@ -12,17 +12,36 @@
 
 package org.apache.storm.metrics2;
 
+import com.codahale.metrics.Counter;
+import com.codahale.metrics.Gauge;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import org.apache.storm.utils.JCQueue;
 
 public class JcMetrics {
     private final SimpleGauge<Long> capacity;
     private final SimpleGauge<Long> population;
+    private final Counter dropped;
+    private final Counter arrivals;
+    private static final Logger LOG = LoggerFactory.getLogger(JcMetrics.class);
 
-    JcMetrics(SimpleGauge<Long> capacity,
-              SimpleGauge<Long> population) {
+    JcMetrics(SimpleGauge<Long> capacity, SimpleGauge<Long> population, 
+              Counter arrivals, Counter dropped) {
         this.capacity = capacity;
         this.population = population;
+        this.arrivals = arrivals;
+        this.dropped = dropped;
     }
+
+    public long getArrival() {
+        return this.arrivals.getCount();
+    }
+
+    public long getDropped() {
+        return this.dropped.getCount();
+    }
+
 
     public void setCapacity(Long capacity) {
         this.capacity.set(capacity);
@@ -32,8 +51,21 @@ public class JcMetrics {
         this.population.set(population);
     }
 
+    public void incrementArrivals(long count) {
+        this.arrivals.inc(count);
+        LOG.info("rkp : arrivals inc by " + count + " : " + this.arrivals.getCount());
+    }
+
+    public void incrementDropped(long count) {
+        this.dropped.inc(count);
+        LOG.info("rkp : dropped inc by " + count + " : " + this.dropped.getCount());
+    }
+
     public void set(JCQueue.QueueMetrics metrics) {
         this.capacity.set(metrics.capacity());
         this.population.set(metrics.population());
+        // this.arrivals.inc(metrics.getArrivalAndReset());
+        // this.dropped.inc(metrics.getDroppedAndReset());
     }
 }
+

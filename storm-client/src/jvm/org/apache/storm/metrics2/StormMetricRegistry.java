@@ -52,7 +52,9 @@ public class StormMetricRegistry {
     public static JcMetrics jcMetrics(String name, String topologyId, String componentId, Integer taskId, Integer port) {
         return new JcMetrics(
             StormMetricRegistry.gauge(0L, name + "-capacity", topologyId, componentId, taskId, port),
-            StormMetricRegistry.gauge(0L, name + "-population", topologyId, componentId, taskId, port)
+            StormMetricRegistry.gauge(0L, name + "-population", topologyId, componentId, taskId, port),
+            StormMetricRegistry.counter(name + "-arrivals", topologyId, componentId, taskId, port, "arrival"),
+            StormMetricRegistry.counter(name + "-dropped", topologyId, componentId, taskId, port, "dropped")
         );
     }
 

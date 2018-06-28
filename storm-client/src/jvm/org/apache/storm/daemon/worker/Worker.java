@@ -150,6 +150,7 @@ public class Worker implements Shutdownable, DaemonCommon {
         IStateStorage stateStorage = ClusterUtils.mkStateStorage(conf, topologyConf, csContext);
         IStormClusterState stormClusterState = ClusterUtils.mkStormClusterState(stateStorage, null, csContext);
 
+        LOG.info("Calling Storm metric registry");
         StormMetricRegistry.start(conf, DaemonType.WORKER);
 
         Credentials initialCredentials = stormClusterState.credentials(topologyId, null);

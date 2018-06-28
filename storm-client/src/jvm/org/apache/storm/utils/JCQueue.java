@@ -150,15 +150,28 @@ public class JCQueue implements IStatefulObject {
 
     // Non Blocking. returns true/false indicating success/failure. Fails if full.
     private boolean tryPublishInternal(Object obj) {
-        if (recvQueue.offer(obj)) {
-            metrics.notifyArrivals(1);
-            return true;
+        int numTries = 5;
+        boolean status = false; 
+        while (numTries > 0) {
+            int res = recvQueue.failFastOffer(obj);
+            if (0 == res) {
+               recordMsgArrival();
+               LOG.info("rkp: offer succeeded : ");
+                return true;
+            } else if (1 == res) { 
+                LOG.info("rkp: failure to add element");
+                return true; // should be false
+            } // else 
+            numTries--;
         }
-        return false;
+
+        LOG.info("rkp: offer failed max tries");
+        return true; // originally false
     }
 
     // Non Blocking. returns count of how many inserts succeeded
     private int tryPublishInternal(ArrayList<Object> objs) {
+        /*
         MessagePassingQueue.Supplier<Object> supplier =
             new MessagePassingQueue.Supplier<Object>() {
                 int i = 0;
@@ -170,6 +183,15 @@ public class JCQueue implements IStatefulObject {
             };
         int count = recvQueue.fill(supplier, objs.size());
         metrics.notifyArrivals(count);
+        */
+
+        LOG.info("rkp:try publish bulk");
+        int count = 0;
+        for (Object obj : objs) {
+            tryPublishInternal(obj);
+            count++;
+        }
+
         return count;
     }
 
@@ -224,6 +246,14 @@ public class JCQueue implements IStatefulObject {
 
     public void recordMsgDrop() {
         getMetrics().notifyDroppedMsg();
+        jcMetrics.incrementDropped(1);
+        LOG.info("Record message drop : ", jcMetrics.getDropped());
+    }
+
+    public void recordMsgArrival() {
+        metrics.notifyArrivals(1);
+        jcMetrics.incrementArrivals(1);
+        LOG.info("Record message arrival : ", jcMetrics.getArrival());
     }
 
     public boolean isEmptyOverflow() {
@@ -314,7 +344,6 @@ public class JCQueue implements IStatefulObject {
                 }
                 inserted = q.tryPublishInternal(obj);
             }
-
         }
 
         /**
@@ -383,6 +412,7 @@ public class JCQueue implements IStatefulObject {
          */
         @Override
         public void flush() throws InterruptedException {
+            LOG.info("rkp:flush bulk");
             if (currentBatch.isEmpty()) {
                 return;
             }
@@ -408,6 +438,7 @@ public class JCQueue implements IStatefulObject {
          */
         @Override
         public boolean tryFlush() {
+            LOG.info("rkp:tryflush bulk");
             if (currentBatch.isEmpty()) {
                 return true;
             }
@@ -429,6 +460,7 @@ public class JCQueue implements IStatefulObject {
         private final RateTracker arrivalsTracker = new RateTracker(10000, 10);
         private final RateTracker insertFailuresTracker = new RateTracker(10000, 10);
         private final AtomicLong droppedMessages = new AtomicLong(0);
+        private final AtomicLong arrivalsMessages = new AtomicLong(0);
 
         public long population() {
             return recvQueue.size();
@@ -436,6 +468,14 @@ public class JCQueue implements IStatefulObject {
 
         public long capacity() {
             return recvQueue.capacity();
+        }
+
+        public long dropped() {
+            return droppedMessages.get();
+        }
+
+        public long arrivals() {
+            return arrivalsMessages.get();
         }
 
         public Object getState() {
@@ -461,12 +501,14 @@ public class JCQueue implements IStatefulObject {
             state.put("sojourn_time_ms", sojournTime); //element sojourn time in milliseconds
             state.put("insert_failures", insertFailuresTracker.reportRate());
             state.put("dropped_messages", droppedMessages);
+            state.put("arrivals_messages", arrivalsMessages);
             state.put("overflow", overflowQ.size());
             return state;
         }
 
         public void notifyArrivals(long counts) {
             arrivalsTracker.notify(counts);
+            LOG.info("arrival inc : " + this.arrivalsMessages.addAndGet(counts));
         }
 
         public void notifyInsertFailure() {
@@ -474,7 +516,7 @@ public class JCQueue implements IStatefulObject {
         }
 
         public void notifyDroppedMsg() {
-            droppedMessages.incrementAndGet();
+            LOG.info("Dropped inc : " + this.droppedMessages.incrementAndGet());
         }
 
         public void close() {
@@ -482,5 +524,8 @@ public class JCQueue implements IStatefulObject {
             insertFailuresTracker.close();
         }
 
+        public long getArrivalsCount() {
+            return this.arrivalsMessages.get();
+        }
     }
 }
