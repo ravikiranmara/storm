@@ -65,6 +65,9 @@ import org.apache.storm.utils.Time;
 import org.apache.storm.utils.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import java.lang.management.ManagementFactory;
+import java.lang.management.RuntimeMXBean;
+import com.sun.management.OperatingSystemMXBean;
 
 public class Worker implements Shutdownable, DaemonCommon {
 
@@ -170,6 +173,7 @@ public class Worker implements Shutdownable, DaemonCommon {
     private Object loadWorker(Map<String, Object> topologyConf, IStateStorage stateStorage, IStormClusterState stormClusterState,
                               Map<String, String> initCreds, Credentials initialCredentials)
         throws Exception {
+        LOG.info("rkp: new workerstate");
         workerState = new WorkerState(conf, context, topologyId, assignmentId, supervisorPort, port, workerId,
                                       topologyConf, stateStorage, stormClusterState, autoCreds);
 
@@ -222,6 +226,7 @@ public class Worker implements Shutdownable, DaemonCommon {
             }
         }
 
+        LOG.info("rkp: Local Executors : {}", execs.size());
         List<IRunningExecutor> newExecutors = new ArrayList<IRunningExecutor>();
         for (Executor executor : execs) {
             newExecutors.add(executor.execute());
@@ -231,6 +236,7 @@ public class Worker implements Shutdownable, DaemonCommon {
         // This thread will send out messages destined for remote tasks (on other workers)
         // If there are no remote outbound tasks, don't start the thread.
         if (workerState.hasRemoteOutboundTasks()) {
+            LOG.info("rkp: make worker transfer thread");
             transferThread = workerState.makeTransferThread();
             transferThread.setName("Worker-Transfer");
         }
@@ -338,6 +344,10 @@ public class Worker implements Shutdownable, DaemonCommon {
                                                                                               .collect(Collectors.toList()),
                                                                     workerState.port);
         state.setWorkerHeartBeat(lsWorkerHeartbeat);
+	OperatingSystemMXBean bean = (com.sun.management.OperatingSystemMXBean) ManagementFactory.getOperatingSystemMXBean();
+	LOG.info("rkp: Heartbeat CPU usage " + ManagementFactory.getRuntimeMXBean().getName()  + " ProcessLoad " 
+                     + bean.getProcessCpuLoad() + " System Load " + bean.getSystemCpuLoad());
+
         state.cleanup(60); // this is just in case supervisor is down so that disk doesn't fill up.
         // it shouldn't take supervisor 120 seconds between listing dir and reading it
         heartbeatToMasterIfLocalbeatFail(lsWorkerHeartbeat);

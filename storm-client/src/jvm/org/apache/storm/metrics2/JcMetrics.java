@@ -14,6 +14,7 @@ package org.apache.storm.metrics2;
 
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Gauge;
+import com.codahale.metrics.Meter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,14 +25,19 @@ public class JcMetrics {
     private final SimpleGauge<Long> population;
     private final Counter dropped;
     private final Counter arrivals;
+    private final Meter dropMeter;
+    private final Meter arrivalMeter;
     private static final Logger LOG = LoggerFactory.getLogger(JcMetrics.class);
 
     JcMetrics(SimpleGauge<Long> capacity, SimpleGauge<Long> population, 
-              Counter arrivals, Counter dropped) {
+              Counter arrivals, Counter dropped, Meter arrivalMeter, 
+              Meter dropMeter) {
         this.capacity = capacity;
         this.population = population;
         this.arrivals = arrivals;
         this.dropped = dropped;
+        this.dropMeter = dropMeter;
+        this.arrivalMeter = arrivalMeter;
     }
 
     public long getArrival() {
@@ -42,6 +48,13 @@ public class JcMetrics {
         return this.dropped.getCount();
     }
 
+    public long getDropMeter() {
+        return this.dropMeter.getCount();
+    }
+
+    public long getArrivalMeter() {
+        return this.arrivalMeter.getCount();
+    }
 
     public void setCapacity(Long capacity) {
         this.capacity.set(capacity);
@@ -49,6 +62,14 @@ public class JcMetrics {
 
     public void setPopulation(Long population) {
         this.population.set(population);
+    }
+
+    public void markArrivals() {
+        this.arrivalMeter.mark();
+    }
+
+    public void markDropped() {
+        this.dropMeter.mark();
     }
 
     public void incrementArrivals(long count) {

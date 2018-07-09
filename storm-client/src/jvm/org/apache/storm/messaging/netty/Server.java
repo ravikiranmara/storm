@@ -111,7 +111,7 @@ class Server extends ConnectionWithStatus implements IStatefulObject, ISaslServe
     }
 
     private void addReceiveCount(String from, int amount) {
-        //This is possibly lossy in the case where a value is deleted
+        // This is possibly lossy in the case where a value is deleted
         // because it has received no messages over the metrics collection
         // period and new messages are starting to come in.  This is
         // because I don't want the overhead of a synchronize just to have
@@ -119,14 +119,14 @@ class Server extends ConnectionWithStatus implements IStatefulObject, ISaslServe
         AtomicInteger i = messagesEnqueued.get(from);
         if (i == null) {
             i = new AtomicInteger(amount);
-            LOG.info("rkp: enqueue tuple from {}:{}", from, amount);
+            // LOG.info("rkp: enqueue tuple from {}:{}", from, amount);
             AtomicInteger prev = messagesEnqueued.putIfAbsent(from, i);
             if (prev != null) {
                 prev.addAndGet(amount);
             }
         } else {
             i.addAndGet(amount);
-            LOG.info("rkp: enqueue tuple i {}:{}=>{}", from, amount, i);
+            // LOG.info("rkp: enqueue tuple i {}:{}=>{}", from, amount, i);
         }
     }
 
@@ -140,6 +140,9 @@ class Server extends ConnectionWithStatus implements IStatefulObject, ISaslServe
             return;
         }
 
+        // take in all the requests, and feed it to the target executor queues. 
+        // target queues are curtailed to be size 1024. rest is dropped
+        // we can additionally tabulate, total arrival, dropped and processed
         addReceiveCount(from, msgs.size());
         if (cb != null) {
             cb.recv(msgs);
@@ -269,7 +272,7 @@ class Server extends ConnectionWithStatus implements IStatefulObject, ISaslServe
     @Override
     public void received(Object message, String remote, Channel channel) throws InterruptedException {
         List<TaskMessage> msgs = (List<TaskMessage>) message;
-        LOG.info("rkp: message received : {}", msgs.size());
+        // LOG.info("rkp: message received : {}", msgs.size());
         enqueue(msgs, remote);
     }
 

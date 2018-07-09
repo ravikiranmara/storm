@@ -156,10 +156,8 @@ public class JCQueue implements IStatefulObject {
             int res = recvQueue.failFastOffer(obj);
             if (0 == res) {
                recordMsgArrival();
-               LOG.info("rkp: offer succeeded : ");
                 return true;
             } else if (1 == res) { 
-                LOG.info("rkp: failure to add element");
                 return true; // should be false
             } // else 
             numTries--;
@@ -247,13 +245,15 @@ public class JCQueue implements IStatefulObject {
     public void recordMsgDrop() {
         getMetrics().notifyDroppedMsg();
         jcMetrics.incrementDropped(1);
-        LOG.info("Record message drop : ", jcMetrics.getDropped());
+        jcMetrics.markDropped();
+        // LOG.info("Record message drop : ", jcMetrics.getDropped());
     }
 
     public void recordMsgArrival() {
         metrics.notifyArrivals(1);
+        jcMetrics.markArrivals();
         jcMetrics.incrementArrivals(1);
-        LOG.info("Record message arrival : ", jcMetrics.getArrival());
+        // LOG.info("Record message arrival : ", jcMetrics.getArrival());
     }
 
     public boolean isEmptyOverflow() {
@@ -412,7 +412,6 @@ public class JCQueue implements IStatefulObject {
          */
         @Override
         public void flush() throws InterruptedException {
-            LOG.info("rkp:flush bulk");
             if (currentBatch.isEmpty()) {
                 return;
             }
@@ -438,7 +437,6 @@ public class JCQueue implements IStatefulObject {
          */
         @Override
         public boolean tryFlush() {
-            LOG.info("rkp:tryflush bulk");
             if (currentBatch.isEmpty()) {
                 return true;
             }

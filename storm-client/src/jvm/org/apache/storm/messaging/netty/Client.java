@@ -459,7 +459,6 @@ public class Client extends ConnectionWithStatus implements IStatefulObject, ISa
                 break;
             }
         }
-
     }
 
     private void closeChannel() {

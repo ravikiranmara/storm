@@ -53,9 +53,28 @@ public class StormMetricRegistry {
         return new JcMetrics(
             StormMetricRegistry.gauge(0L, name + "-capacity", topologyId, componentId, taskId, port),
             StormMetricRegistry.gauge(0L, name + "-population", topologyId, componentId, taskId, port),
-            StormMetricRegistry.counter(name + "-arrivals", topologyId, componentId, taskId, port, "arrival"),
-            StormMetricRegistry.counter(name + "-dropped", topologyId, componentId, taskId, port, "dropped")
+            StormMetricRegistry.counter(name + "-Qarrivals", topologyId, componentId, taskId, port, "arrival"),
+            StormMetricRegistry.counter(name + "-Qdropped", topologyId, componentId, taskId, port, "dropped"),
+            StormMetricRegistry.meter(name + "-QarrivalMeter", topologyId, componentId, taskId, port, "arrivalMeter"),
+            StormMetricRegistry.meter(name + "-QdroppedMeter", topologyId, componentId, taskId, port, "droppedMeter")
         );
+    }
+
+    public static WorkerMetrics workerMetrics(String name, String topologyId, String componentId, Integer taskId, Integer port) {
+        return new WorkerMetrics(
+            StormMetricRegistry.counter(name + "-Warrivals", topologyId, componentId, taskId, port, "Warrival"),
+            StormMetricRegistry.counter(name + "-Wemitted", topologyId, componentId, taskId, port, "Wemitted"),
+            StormMetricRegistry.counter(name + "-Wdropped", topologyId, componentId, taskId, port, "Wdropped"),
+            StormMetricRegistry.meter(name + "-WarrivalMeter", topologyId, componentId, taskId, port, "WarrivalMeter"),
+            StormMetricRegistry.meter(name + "-WemittedMeter", topologyId, componentId, taskId, port, "WemittedMeter"),
+            StormMetricRegistry.meter(name + "-WdroppedMeter", topologyId, componentId, taskId, port, "WdroppedMeter")
+        );
+    }
+
+
+    public static Meter meter(String name, String topologyId, String componentId, Integer taskId, Integer workerPort, String streamId) {
+        String metricName = metricName(name, topologyId, componentId, streamId, taskId, workerPort);
+        return REGISTRY.meter(metricName);
     }
 
     public static Meter meter(String name, WorkerTopologyContext context, String componentId, Integer taskId, String streamId) {

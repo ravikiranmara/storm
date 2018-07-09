@@ -451,6 +451,7 @@ public class WorkerState {
     }
 
     public void refreshLoad(List<IRunningExecutor> execs) {
+        LOG.info("rkp: refreshLoad called");
         Set<Integer> remoteTasks = Sets.difference(new HashSet<>(outboundTasks), new HashSet<>(localTaskIds));
         Long now = System.currentTimeMillis();
         Map<Integer, Double> localLoad = new HashMap<>();
@@ -519,10 +520,12 @@ public class WorkerState {
     }
 
     public void flushRemotes() throws InterruptedException {
+        LOG.info("rkp: Flush remotes");
         workerTransfer.flushRemotes();
     }
 
     public boolean tryFlushRemotes() {
+        LOG.info("rkp: tryFlush remotes");
         return workerTransfer.tryFlushRemotes();
     }
 
