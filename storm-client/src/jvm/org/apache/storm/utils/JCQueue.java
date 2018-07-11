@@ -183,7 +183,7 @@ public class JCQueue implements IStatefulObject {
         metrics.notifyArrivals(count);
         */
 
-        LOG.info("rkp:try publish bulk");
+        // LOG.info("rkp:try publish bulk");
         int count = 0;
         for (Object obj : objs) {
             tryPublishInternal(obj);
@@ -506,7 +506,7 @@ public class JCQueue implements IStatefulObject {
 
         public void notifyArrivals(long counts) {
             arrivalsTracker.notify(counts);
-            LOG.info("arrival inc : " + this.arrivalsMessages.addAndGet(counts));
+            // LOG.info("arrival inc : " + this.arrivalsMessages.addAndGet(counts));
         }
 
         public void notifyInsertFailure() {
@@ -514,7 +514,7 @@ public class JCQueue implements IStatefulObject {
         }
 
         public void notifyDroppedMsg() {
-            LOG.info("Dropped inc : " + this.droppedMessages.incrementAndGet());
+            // LOG.info("Dropped inc : " + this.droppedMessages.incrementAndGet());
         }
 
         public void close() {

@@ -92,6 +92,8 @@ class WorkerTransfer implements JCQueue.Consumer {
             throw new RuntimeException(new InterruptedException("Worker Transfer Thread interrupted"));
         }
         TaskMessage tm = (TaskMessage) tuple;
+        // this.workerState.getWorkerMetrics().incrementEmitted(1);
+        // this.workerState.getWorkerMetrics().markEmitted(1);
         drainer.add(tm);
     }
 

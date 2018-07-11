@@ -357,7 +357,7 @@ public class Client extends ConnectionWithStatus implements IStatefulObject, ISa
         // We consume the iterator by traversing and thus "emptying" it.
         int msgCount = iteratorSize(msgs);
         messagesLost.getAndAdd(msgCount);
-        LOG.info("Dropping {} messages", msgCount);
+        // LOG.info("Dropping {} messages", msgCount);
     }
 
     private int iteratorSize(Iterator<TaskMessage> msgs) {

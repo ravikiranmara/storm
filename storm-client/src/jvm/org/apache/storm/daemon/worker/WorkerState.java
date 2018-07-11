@@ -76,6 +76,8 @@ import org.apache.storm.utils.Utils;
 import org.apache.storm.utils.Utils.SmartThread;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.apache.storm.metrics2.WorkerMetrics;
+import org.apache.storm.metrics2.StormMetricRegistry;
 
 public class WorkerState {
 
@@ -145,6 +147,7 @@ public class WorkerState {
     private final AtomicLong nextLoadUpdate = new AtomicLong(0);
     private final boolean trySerializeLocal;
     private final Collection<IAutoCredentials> autoCredentials;
+    private final WorkerMetrics workerMetrics;
 
     public WorkerState(Map<String, Object> conf, IContext mqContext, String topologyId, String assignmentId,
                        int supervisorPort, int port, String workerId, Map<String, Object> topologyConf, IStateStorage stateStorage,
@@ -216,6 +219,7 @@ public class WorkerState {
         this.workerTransfer = new WorkerTransfer(this, topologyConf, maxTaskId);
         this.bpTracker = new BackPressureTracker(workerId, localTaskIds);
         this.deserializedWorkerHooks = deserializeWorkerHooks();
+        this.workerMetrics = StormMetricRegistry.workerMetrics(this.topologyId, this.workerId, this.port);
     }
 
     private static double getQueueLoad(JCQueue q) {
@@ -535,6 +539,8 @@ public class WorkerState {
     private void transferLocalBatch(ArrayList<AddressedTuple> tupleBatch) {
         int lastOverflowCount = 0; // overflowQ size at the time the last BPStatus was sent
 
+        this.workerMetrics.incrementArrived(tupleBatch.size());
+        this.workerMetrics.markArrived(tupleBatch.size());
         for (int i = 0; i < tupleBatch.size(); i++) {
             AddressedTuple tuple = tupleBatch.get(i);
             JCQueue queue = shortExecutorReceiveQueueMap.get(tuple.dest);
@@ -574,6 +580,8 @@ public class WorkerState {
     private void dropMessage(AddressedTuple tuple, JCQueue queue) {
         ++dropCount;
         queue.recordMsgDrop();
+        this.workerMetrics.incrementDropped(1);
+        this.workerMetrics.markDropped(1);
         LOG.info(
             "Dropping message as overflow threshold has reached for Q = {}. OverflowCount = {}. Total Drop Count= {}, Dropped Message : {}",
             queue.getName(), queue.getOverflowCount(), dropCount, tuple);
@@ -770,5 +778,9 @@ public class WorkerState {
 
     public interface ILocalTransferCallback {
         void transfer(ArrayList<AddressedTuple> tupleBatch);
+    }
+
+    public WorkerMetrics getWorkerMetrics() {
+        return this.workerMetrics;
     }
 }

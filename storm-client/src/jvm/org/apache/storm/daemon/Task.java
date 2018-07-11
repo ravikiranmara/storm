@@ -144,8 +144,10 @@ public class Task {
 
     public List<Integer> getOutgoingTasks(String stream, List<Object> values) {
         if (debug) {
-            LOG.info("Emitting Tuple: taskId={} componentId={} stream={} values={}", taskId, componentId, stream, values);
+            // LOG.info("Emitting Tuple: taskId={} componentId={} stream={} values={}", taskId, componentId, stream, values);
         }
+        this.workerData.getWorkerMetrics().incrementEmitted(values.size()); // rkp
+        this.workerData.getWorkerMetrics().markEmitted(values.size());
 
         ArrayList<Integer> outTasks = new ArrayList<>();
 
